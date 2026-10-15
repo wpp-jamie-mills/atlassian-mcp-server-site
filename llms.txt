@@ -1,0 +1,91 @@
+# Atlassian MCP Server
+
+> Give Claude every Jira, Confluence and Rovo API. It runs locally on your Mac, signs in as you on each of your Atlassian sites, and can only do what your account can. A Claude Desktop extension for macOS, version 1.0.1.
+
+## Install (agents)
+
+Continue only if `uname -s` prints `Darwin` and `/Applications/Claude.app` exists. Otherwise tell the user it needs macOS with Claude Desktop installed.
+
+Run the installer with this one command. It downloads the extension, checks its SHA-256 (nothing is installed before the check passes) and opens Claude Desktop's install dialog. With no terminal it never quits or restarts an app, answers no to every question and never opens the token prompt (a dialog that waits for a person). `--no-wait` makes it exit 0 once the dialog is open. It exits non-zero, with the reason on stderr, if anything fails before then. Exit 0 means the installer finished its steps, not that Claude Desktop installed the extension.
+
+```bash
+curl -fsSL https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/install.sh | ATLASSIAN_INSTALL_TTY=/dev/null bash -s -- --no-wait
+```
+
+To choose the sites, add `--site <site>` (once per site, e.g. `--site acme.atlassian.net`) after `--no-wait`.
+
+Then ask the user to click Install in Claude Desktop's dialog. For each site without a token, call `atlassian_set_token` with the site: it opens a secure prompt on their Mac for their Atlassian email and API token. Never ask for the token in chat, and never write it to a file or a command line.
+
+### Upgrade
+
+Run the same command again.
+
+### Verify
+
+Run the installer again with `--status` (after `bash -s --`); it never prints a token. Inside Claude Desktop, call `atlassian_ensure_ready`: it reports each site's token, Jira and Confluence access, Rovo sign-in and the single next step.
+
+### Rovo (optional)
+
+Call `atlassian_rovo_sign_in` with the site. It opens the Atlassian sign-in page in the user's browser; they approve access once per site (Atlassian's consent grants one site at a time).
+
+## Tools
+
+### Setup
+
+| Tool | What it does |
+|---|---|
+| `atlassian_ensure_ready` | Report, for each Atlassian site, whether an API token is saved and works for Jira and Confluence, whether Rovo is signed in, and the single next step. |
+| `atlassian_set_token` | Open a native macOS prompt where the user enters their Atlassian account email and pastes an API token for one site. |
+
+### Jira
+
+| Tool | What it does |
+|---|---|
+| `atlassian_jira_search` | Search Jira issues with JQL, e.g. `project = ENG AND status != Done ORDER BY updated DESC` or `assignee = currentUser() AND resolution = Unresolved`. |
+| `atlassian_jira_get_issue` | Read one Jira issue in full: summary, status, people, dates, every non-empty field (custom fields by name), description and latest comments as Markdown, subtasks, links and attachments. |
+| `atlassian_jira_create_issue` | Create a Jira issue (task, bug, story, epic, subtask…). |
+| `atlassian_jira_edit_issue` | Change fields on a Jira issue: summary, description (Markdown), assignee, priority, labels (replace, add or remove), components, parent, due date, or any field in Jira's REST form. |
+| `atlassian_jira_transition_issue` | Change a Jira issue's status by applying a workflow transition, by transition name, target status name or id. |
+| `atlassian_jira_add_comment` | Add a comment (Markdown) to a Jira issue, visible to everyone who can see it unless visibility restricts it. |
+| `atlassian_jira_list_projects` | List the Jira projects the account can see, optionally filtered by name or key, with their keys and leads. |
+
+### Confluence
+
+| Tool | What it does |
+|---|---|
+| `atlassian_confluence_search` | Search Confluence with CQL, e.g. `type = page AND space = ENG AND text ~ "release plan" ORDER BY lastmodified DESC`, or pass text for a simple full-text search. |
+| `atlassian_confluence_get_page` | Read a Confluence page or blog post: title, space, version, dates, link and the body as Markdown. format 'storage' returns Confluence's XHTML storage format and 'adf' the raw document, e.g. to see macros exactly. |
+| `atlassian_confluence_create_page` | Create a Confluence page (or blog post) from Markdown in a space, optionally under a parent page. |
+| `atlassian_confluence_update_page` | Update a Confluence page or blog post: new title and/or body from Markdown, replacing the body or appending to it. |
+| `atlassian_confluence_add_comment` | Add a footer comment (Markdown) to a Confluence page or blog post, or reply to an existing comment. |
+| `atlassian_confluence_list_spaces` | List the Confluence spaces the account can see, with keys, ids, names and types. |
+
+### Every REST API, and GraphQL
+
+| Tool | What it does |
+|---|---|
+| `atlassian_discover` | Search the catalog of Jira and Confluence REST operations: 1,191 operations from the Jira platform, Jira Software (boards, sprints, epics, backlog), Jira Service Management and Confluence (v2 and v1) REST APIs. |
+| `atlassian_describe_operation` | Everything about one catalog operation: route, tier and the tool that runs it, parameters, the request body schema with $refs expanded to depth levels, OAuth scopes (for scoped API tokens), and deprecation or app-only notes. |
+| `atlassian_execute_read` | Run a read-only Atlassian REST operation from the catalog (tier read in atlassian_discover): every GET, plus POST searches and checks such as JQL search (jira.searchAndReconsileIssuesUsingJqlPost) and bulk fetches. |
+| `atlassian_execute_write` | Run an Atlassian REST operation from the catalog that creates or changes something (tier write in atlassian_discover), such as creating an issue, transitioning it, adding a comment or updating a page. |
+| `atlassian_execute_destructive` | Run an Atlassian REST operation from the catalog that deletes, archives, trashes, redacts or removes something (tier destructive in atlassian_discover). |
+| `atlassian_request` | Send a request to any Jira or Confluence REST endpoint, for one the catalog doesn't have. |
+| `atlassian_graphql_query` | Run a read-only GraphQL query against Atlassian's GraphQL API on the site (https://<site>/gateway/api/graphql). |
+| `atlassian_graphql_mutation` | Run a GraphQL mutation against Atlassian's GraphQL API on the site. |
+
+### Rovo
+
+| Tool | What it does |
+|---|---|
+| `atlassian_rovo_sign_in` | Open the Atlassian sign-in page in the user's browser so this server can use Rovo search and the Teamwork Graph for a site (Atlassian only offers these through its hosted Rovo MCP server, which needs a browser sign-in; API tokens aren't used for it). |
+| `atlassian_rovo_sign_out` | Forget the Rovo sign-in for a site: removes its tokens from the Keychain. |
+| `atlassian_rovo_search` | Search across Jira, Confluence and connected third-party apps (Google Drive, Slack, GitHub and others the organisation connected) with Rovo Search, Atlassian's semantic enterprise search. |
+| `atlassian_teamwork_graph_context` | Get everything connected to one item in Atlassian's Teamwork Graph in a single call: linked work items, pages, people, teams, goals, projects, pull requests, builds, deployments, designs, Loom videos and third-party items. |
+| `atlassian_teamwork_graph_object` | Fetch the full available data for up to 25 items (Atlassian or third-party) by ARI or URL, e.g. ARIs returned by atlassian_teamwork_graph_context or atlassian_rovo_search. |
+| `atlassian_teamwork_graph_link` | Add a relationship in the Teamwork Graph: link two Jira work items, mark one as blocking another, add a remote link to a work item, or connect a work item to an Atlassian project or goal. |
+
+## Links
+
+- [Landing page](https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/): install guides for people and agents
+- [Summary](https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/summary.md): this project as one markdown page
+- [Installer](https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/install.sh): the script the install command runs

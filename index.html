@@ -1,0 +1,1592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Atlassian MCP Server: every Jira, Confluence and Rovo API for Claude</title>
+    <meta name="description" content="Give Claude every Jira, Confluence and Rovo API. It runs locally on your Mac, signs in as you on each of your Atlassian sites, and can only do what your account can." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/" />
+    <meta property="og:title" content="Atlassian MCP Server: every Jira, Confluence and Rovo API for Claude" />
+    <meta property="og:description" content="Give Claude every Jira, Confluence and Rovo API. It runs locally on your Mac, signs in as you on each of your Atlassian sites, and can only do what your account can." />
+    <meta property="og:image" content="https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/assets/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="site-build" content="3505c59224e8465be8704e27880f059706e2aa58" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%230b1020%27%2F%3E%3Crect%20x%3D%276.5%27%20y%3D%275.5%27%20width%3D%2716%27%20height%3D%2720%27%20rx%3D%272.5%27%20fill%3D%27none%27%20stroke%3D%27%23f2f2f2%27%20stroke-width%3D%272.4%27%2F%3E%3Cline%20x1%3D%2710.5%27%20y1%3D%2712%27%20x2%3D%2718.5%27%20y2%3D%2712%27%20stroke-linecap%3D%27round%27%20stroke%3D%27%23f2f2f2%27%20stroke-width%3D%272.2%27%2F%3E%3Ccircle%20cx%3D%2723%27%20cy%3D%2723%27%20r%3D%273.6%27%20fill%3D%27%23ffffff%27%20stroke%3D%27%233b7bea%27%20stroke-width%3D%272%27%2F%3E%3C%2Fsvg%3E" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="alternate" type="text/markdown" href="llms.txt" />
+    <link
+      rel="preload"
+      href="fonts/InstrumentSerif-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="fonts/Satoshi-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <style>
+      @font-face {
+        font-family: "Instrument Serif";
+        src: url("fonts/InstrumentSerif-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Satoshi";
+        src: url("fonts/Satoshi-Variable.woff2") format("woff2");
+        font-weight: 300 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        src: url("fonts/IBMPlexMono-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* Tokens: shadcn/ui semantic names. Dark is the primary direction; light follows the system setting. */
+      :root {
+        color-scheme: dark;
+        --radius: 0.625rem;
+        --background: oklch(0.12 0.003 260);
+        --foreground: oklch(0.955 0.005 250);
+        --card: oklch(0.165 0.006 260);
+        --card-foreground: oklch(0.955 0.005 250);
+        --popover: oklch(0.18 0.006 260);
+        --popover-foreground: oklch(0.955 0.005 250);
+        --primary: oklch(0.955 0.004 90);
+        --primary-foreground: oklch(0.17 0.004 260);
+        --secondary: oklch(0.22 0.007 260);
+        --secondary-foreground: oklch(0.94 0.005 250);
+        --muted: oklch(0.22 0.007 260);
+        --muted-foreground: oklch(0.71 0.012 250);
+        --accent: oklch(0.24 0.025 255);
+        --accent-foreground: oklch(0.82 0.11 255);
+        --border: oklch(0.9 0.01 250 / 0.14);
+        --input: oklch(0.9 0.01 250 / 0.2);
+        --ring: oklch(0.72 0.12 255);
+        --success: oklch(0.77 0.14 155);
+        --success-foreground: oklch(0.16 0.04 155);
+        --code: oklch(0.105 0.004 260);
+        --code-foreground: oklch(0.89 0.009 250);
+        --code-muted: oklch(0.7 0.012 250);
+        --code-border: oklch(0.9 0.01 250 / 0.12);
+        --highlight: oklch(1 0 0 / 0.035);
+        --sheen: oklch(1 0 0 / 0.025);
+        --shadow-raised: 0 24px 48px -24px oklch(0 0 0 / 0.7);
+
+        --font-display: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+        --font-sans:
+          "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --radius-sm: calc(var(--radius) * 0.6);
+        --radius-md: calc(var(--radius) * 0.8);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) * 1.4);
+        --radius-2xl: calc(var(--radius) * 1.8);
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        --rail: 78rem;
+        --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          color-scheme: light;
+          --background: oklch(0.965 0.004 90);
+          --foreground: oklch(0.17 0.004 260);
+          --card: oklch(0.995 0.002 90);
+          --card-foreground: oklch(0.17 0.004 260);
+          --popover: oklch(0.995 0.002 90);
+          --popover-foreground: oklch(0.17 0.004 260);
+          --primary: oklch(0.17 0.004 260);
+          --primary-foreground: oklch(0.975 0.003 90);
+          --secondary: oklch(0.925 0.004 100);
+          --secondary-foreground: oklch(0.22 0.004 260);
+          --muted: oklch(0.925 0.004 100);
+          --muted-foreground: oklch(0.45 0.01 255);
+          --accent: oklch(0.925 0.018 255);
+          --accent-foreground: oklch(0.34 0.14 255);
+          --border: oklch(0.84 0.006 255 / 0.75);
+          --input: oklch(0.84 0.006 255 / 0.9);
+          --ring: oklch(0.49 0.17 255);
+          --success: oklch(0.49 0.13 155);
+          --success-foreground: oklch(0.98 0.015 150);
+          --code: oklch(0.13 0.006 260);
+          --code-foreground: oklch(0.9 0.008 250);
+          --code-muted: oklch(0.72 0.012 250);
+          --code-border: oklch(0.13 0.006 260);
+          --highlight: oklch(1 0 0 / 0.6);
+          --sheen: transparent;
+          --shadow-raised: 0 24px 48px -28px oklch(0.2 0.01 260 / 0.28);
+        }
+      }
+
+      /* Base */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1.5rem;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font: 400 1rem/1.65 var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+      a {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: var(--muted-foreground);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.2em;
+        transition: text-decoration-color 140ms var(--ease);
+      }
+      a:hover {
+        text-decoration-color: currentColor;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+      h2 {
+        font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+      }
+      h3 {
+        font-size: 1.1875rem;
+        letter-spacing: -0.01em;
+      }
+      p {
+        margin: 0 0 1rem;
+        text-wrap: pretty;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin: 0.45rem 0;
+        padding-left: 0.2rem;
+      }
+      ol > li::marker {
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      ul > li::marker {
+        color: var(--muted-foreground);
+      }
+      strong {
+        font-weight: 600;
+      }
+      code {
+        font: 400 0.875em var(--font-mono);
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.06em 0.36em;
+        overflow-wrap: anywhere;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .skip {
+        position: absolute;
+        left: var(--gutter);
+        top: 0.75rem;
+        z-index: 10;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-md);
+        background: var(--primary);
+        color: var(--primary-foreground);
+        font-weight: 600;
+        text-decoration: none;
+        transform: translateY(-200%);
+      }
+      .skip:focus {
+        transform: none;
+      }
+      .rail {
+        max-width: var(--rail);
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+      .kicker {
+        margin: 0 0 0.85rem;
+        font: 500 0.8125rem/1.4 var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      .lede {
+        font-size: 1.0625rem;
+        color: var(--muted-foreground);
+        max-width: 62ch;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 2.75rem;
+        padding: 0 1.25rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        font: 600 0.9375rem/1 var(--font-sans);
+        text-decoration: none;
+        white-space: nowrap;
+        transition:
+          background-color 140ms var(--ease),
+          border-color 140ms var(--ease),
+          transform 140ms var(--ease);
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: none;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        box-shadow: inset 0 1px 0 var(--highlight);
+      }
+      .btn-primary:hover {
+        background: color-mix(in oklch, var(--primary) 88%, var(--background));
+      }
+      .btn-outline {
+        border-color: var(--input);
+        color: var(--foreground);
+      }
+      .btn-outline:hover {
+        background: var(--secondary);
+      }
+
+      /* Header */
+      .site-header {
+        border-bottom: 1px solid var(--border);
+      }
+      .site-header .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: 4rem;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-height: 2.75rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+      /* The mark (BRAND_MARK, from scripts/mark.json): monochrome, its accent in the selection colour. */
+      .mark {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        overflow: visible;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .nav-links li {
+        margin: 0;
+        padding: 0;
+      }
+      .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        text-decoration: none;
+        transition:
+          color 140ms var(--ease),
+          background-color 140ms var(--ease);
+      }
+      .nav-links a:hover {
+        color: var(--foreground);
+        background: var(--secondary);
+      }
+      .menu {
+        display: none;
+        position: relative;
+      }
+      .menu summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-height: 2.75rem;
+        padding: 0 0.9rem;
+        border: 1px solid var(--input);
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        list-style: none;
+      }
+      .menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .menu summary::before {
+        content: "";
+        width: 14px;
+        height: 9px;
+        border-block: 1.5px solid currentColor;
+        background: linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat;
+      }
+      .menu[open] summary {
+        background: var(--secondary);
+      }
+      .menu .nav-links {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        z-index: 5;
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 13rem;
+        padding: 0.375rem;
+        background: var(--popover);
+        color: var(--popover-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-raised);
+      }
+      .menu .nav-links a {
+        width: 100%;
+        min-height: 2.75rem;
+        color: var(--popover-foreground);
+      }
+      @media (max-width: 760px) {
+        .site-header nav.desktop {
+          display: none;
+        }
+        .menu {
+          display: block;
+        }
+      }
+
+      /* Hero */
+      .hero {
+        display: grid;
+        align-content: center;
+        min-height: min(calc(86svh - 4rem), 52rem);
+        padding-block: clamp(3.5rem, 2rem + 6vw, 8rem);
+      }
+      .hero-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(2.5rem, 5vw, 5rem);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.5rem;
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--card);
+        font: 500 0.8125rem/1.3 var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      .hero h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(3.25rem, 2rem + 3.7vw, 5.25rem);
+        line-height: 0.98;
+        letter-spacing: -0.022em;
+        margin-bottom: 1.5rem;
+      }
+      .hero .lede {
+        font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+        max-width: 40ch;
+        margin-bottom: 2rem;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 0;
+        margin: 0;
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .meta span + span::before {
+        content: "/";
+        margin: 0 0.75rem;
+        opacity: 0.5;
+      }
+
+      /* Hero object: a frame being laid out on the canvas, one layer selected. */
+      .canvas {
+        position: relative;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-2xl);
+        background:
+          radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 1.5px) 0 0 / 18px 18px,
+          linear-gradient(180deg, var(--sheen), transparent 35%),
+          var(--card);
+        box-shadow:
+          inset 0 1px 0 var(--highlight),
+          var(--shadow-raised);
+        overflow: hidden;
+      }
+      .canvas svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .f-frame {
+        fill: var(--background);
+        stroke: var(--border);
+      }
+      .f-strong {
+        fill: var(--foreground);
+        opacity: 0.85;
+      }
+      .f-surface {
+        fill: var(--secondary);
+      }
+      .f-faint {
+        fill: var(--muted-foreground);
+        opacity: 0.38;
+      }
+      .f-select {
+        fill: none;
+        stroke: var(--ring);
+        stroke-width: 1.5;
+      }
+      .f-handle {
+        fill: var(--background);
+        stroke: var(--ring);
+        stroke-width: 1.5;
+      }
+      .f-cursor {
+        fill: var(--foreground);
+        stroke: var(--background);
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+      }
+
+      /* Sections */
+      .section {
+        padding-block: clamp(4.5rem, 3rem + 5vw, 8rem);
+      }
+      .section > .rail > .head {
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      }
+      .section .head .lede {
+        margin: 1rem 0 0;
+      }
+      .rule {
+        border-top: 1px solid var(--border);
+      }
+      .dense {
+        padding-block: clamp(4rem, 3rem + 3vw, 6rem);
+      }
+
+      /* Cards */
+      .card {
+        min-width: 0;
+        padding: clamp(1.25rem, 0.9rem + 1.4vw, 2.25rem);
+        background: linear-gradient(180deg, var(--sheen), transparent 40%), var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+      }
+      .card > :last-child,
+      .card > div > :last-child {
+        margin-bottom: 0;
+      }
+      .card h3 {
+        margin-bottom: 0.65rem;
+      }
+      .card .muted {
+        color: var(--muted-foreground);
+      }
+      .label {
+        margin: 0 0 0.75rem;
+        font: 500 0.8125rem var(--font-sans);
+        color: var(--muted-foreground);
+      }
+
+      /* Install */
+      .install-stack {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .people {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 clamp(1.5rem, 1rem + 3vw, 3.5rem);
+        padding: clamp(1.25rem, 0.75rem + 2.4vw, 3rem);
+      }
+      .people .run {
+        grid-column: 1 / -1;
+      }
+      .people .run .codebox {
+        margin-bottom: 1.75rem;
+      }
+      .people .then {
+        padding-left: clamp(1.5rem, 1rem + 2vw, 3rem);
+        border-left: 1px solid var(--border);
+      }
+      .people .then ol > li {
+        margin-bottom: 0.85rem;
+      }
+      .agents {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+        gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+      }
+      .agents-body {
+        max-width: 72ch;
+      }
+
+      /* Code boxes (markup from codeBox() in build-site.mjs) */
+      .codebox {
+        margin: 0 0 1.25rem;
+        background: var(--code);
+        color: var(--code-foreground);
+        border: 1px solid var(--code-border);
+        border-radius: var(--radius-lg);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+        overflow: hidden;
+      }
+      .codebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.375rem 0.375rem 0.375rem 1rem;
+        border-bottom: 1px solid oklch(1 0 0 / 0.08);
+        font: 500 0.75rem var(--font-sans);
+        color: var(--code-muted);
+      }
+      .codebox pre {
+        margin: 0;
+        padding: 0.9rem 1rem 1rem;
+        font: 400 0.8125rem/1.7 var(--font-mono);
+        /* Keep commands on one line (scroll if needed) so a URL is never broken across lines. */
+        white-space: pre;
+        overflow-x: auto;
+        scrollbar-color: oklch(1 0 0 / 0.2) transparent;
+      }
+      .codebox pre:focus-visible {
+        outline-offset: -2px;
+      }
+      .codebox pre code {
+        font: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+      }
+      .copy {
+        position: relative;
+        flex: none;
+        min-width: 4.75rem;
+        min-height: 2rem;
+        padding: 0 0.85rem;
+        font: 600 0.8125rem var(--font-sans);
+        color: var(--code-foreground);
+        background: oklch(1 0 0 / 0.06);
+        border: 1px solid oklch(1 0 0 / 0.14);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition:
+          background-color 140ms var(--ease),
+          border-color 140ms var(--ease),
+          color 140ms var(--ease);
+      }
+      /* A 44px tall target around the compact button. */
+      .copy::after {
+        content: "";
+        position: absolute;
+        inset: -6px -4px;
+      }
+      .copy:hover {
+        background: oklch(1 0 0 / 0.11);
+        border-color: oklch(1 0 0 / 0.24);
+      }
+      .copy.done {
+        background: var(--success);
+        border-color: var(--success);
+        color: var(--success-foreground);
+      }
+
+      /* Why use it: one large card, then varied spans */
+      .bento {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+      .bento .card {
+        display: flex;
+        flex-direction: column;
+      }
+      .bento .card p {
+        color: var(--muted-foreground);
+      }
+      .b-a {
+        grid-column: span 7;
+        grid-row: span 2;
+      }
+      .b-a h3 {
+        font-size: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+        max-width: 18ch;
+      }
+      .b-b,
+      .b-c,
+      .b-d {
+        grid-column: span 5;
+      }
+      .b-e {
+        grid-column: span 7;
+      }
+      .stat {
+        margin: auto 0 0;
+        padding-top: 1.25rem;
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0.5rem 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .chips li {
+        margin: 0;
+        padding: 0.3rem 0.6rem;
+        font: 400 0.8125rem var(--font-mono);
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+      }
+      .b-a .chips {
+        margin-top: auto;
+        padding-top: 1.25rem;
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin: auto 0 0;
+        padding: 1.25rem 0 0;
+        list-style: none;
+        border-top: 1px solid var(--border);
+      }
+      .facts li {
+        margin: 0;
+        padding: 0;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+      }
+      .facts code {
+        display: block;
+        width: fit-content;
+        margin-bottom: 0.3rem;
+        color: var(--foreground);
+      }
+
+      /* What you can do */
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(2rem, 1rem + 4vw, 5rem);
+        align-items: start;
+      }
+      .features-copy h2 {
+        margin-bottom: 2rem;
+      }
+      .features-body > p {
+        max-width: 60ch;
+        padding-left: 1.25rem;
+        border-left: 1px solid var(--border);
+      }
+      .features-body > p strong:first-child {
+        font-size: 1.0625rem;
+      }
+      .notes {
+        color: var(--muted-foreground);
+        font-size: 0.9375rem;
+      }
+
+      /* Reference sections: a heading column beside the content */
+      .docs {
+        display: grid;
+        grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+        gap: clamp(1.5rem, 1rem + 4vw, 5rem);
+        align-items: start;
+      }
+      .docs .head {
+        position: sticky;
+        top: 1.5rem;
+      }
+      .docs .head .lede {
+        margin: 1rem 0 0;
+        font-size: 1rem;
+      }
+      .docs-body {
+        max-width: 68ch;
+      }
+      .docs-body > ol > li,
+      .docs-body > ul > li {
+        margin-bottom: 0.85rem;
+      }
+      .rows > ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .rows li {
+        margin: 0;
+        padding: 1.1rem 0;
+        border-top: 1px solid var(--border);
+      }
+      .rows li:last-child {
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* Tools */
+      .tool-group + .tool-group {
+        margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+      }
+      .tool-group h3 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .count {
+        font: 400 0.8125rem var(--font-mono);
+        color: var(--muted-foreground);
+      }
+      .table-wrap {
+        overflow-x: auto;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--card);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      th {
+        background: var(--muted);
+        font: 500 0.8125rem var(--font-sans);
+        color: var(--muted-foreground);
+      }
+      td {
+        color: var(--muted-foreground);
+      }
+      td:first-child {
+        width: 1%;
+        white-space: nowrap;
+        color: var(--foreground);
+      }
+      td:first-child code {
+        background: none;
+        border: 0;
+        padding: 0;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+      }
+      td code {
+        color: var(--foreground);
+      }
+
+      /* Closing call to action */
+      .cta {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: end;
+        gap: 0 clamp(1.5rem, 1rem + 4vw, 5rem);
+        padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+        border-radius: var(--radius-2xl);
+        box-shadow: inset 0 1px 0 var(--highlight);
+      }
+      .cta h2 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.75rem);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+      }
+      .cta .codebox {
+        grid-column: 1 / -1;
+        margin: clamp(1.5rem, 1rem + 1.5vw, 2.5rem) 0 0;
+      }
+      .cta h2 + p,
+      .cta-note {
+        margin: 0;
+      }
+
+      footer {
+        padding-block: 3rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+      }
+      footer .rail {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem 2rem;
+      }
+      footer p {
+        margin: 0;
+      }
+      footer .links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        margin-left: 1.25rem;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+      }
+
+      /* README extras: subheadings, quotes and emphasis inside rendered sections */
+      .docs-body h3,
+      .docs-body h4,
+      .features-body h3 {
+        margin: 2rem 0 0.75rem;
+      }
+      .docs-body > h3:first-child,
+      .docs-body > h4:first-child {
+        margin-top: 0;
+      }
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.005em;
+      }
+      blockquote {
+        margin: 0 0 1rem;
+        padding: 0.85rem 1rem;
+        border-left: 2px solid var(--input);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        background: var(--muted);
+        color: var(--muted-foreground);
+      }
+      blockquote > :last-child {
+        margin-bottom: 0;
+      }
+      .docs-body .codebox {
+        margin-block: 0.5rem 1.25rem;
+      }
+
+      /* Entrance: the hero copy rises in, then the canvas draws itself. */
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+      }
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      @keyframes glide {
+        from {
+          opacity: 0;
+          transform: translate(14px, 12px);
+        }
+      }
+      .hero-copy > * {
+        animation: rise 520ms var(--ease) both;
+      }
+      .hero-copy > :nth-child(2) {
+        animation-delay: 60ms;
+      }
+      .hero-copy > :nth-child(3) {
+        animation-delay: 120ms;
+      }
+      .hero-copy > :nth-child(4) {
+        animation-delay: 180ms;
+      }
+      .hero-copy > :nth-child(5) {
+        animation-delay: 240ms;
+      }
+      .canvas {
+        animation: rise 520ms var(--ease) 120ms both;
+      }
+      .draw > * {
+        animation: appear 420ms var(--ease) both;
+        transform-box: fill-box;
+      }
+      .draw > :nth-child(1) {
+        animation-delay: 300ms;
+      }
+      .draw > :nth-child(2) {
+        animation-delay: 370ms;
+      }
+      .draw > :nth-child(3) {
+        animation-delay: 440ms;
+      }
+      .draw > :nth-child(4) {
+        animation-delay: 510ms;
+      }
+      .draw > :nth-child(5) {
+        animation-delay: 580ms;
+      }
+      .draw > :nth-child(6) {
+        animation-delay: 650ms;
+      }
+      .draw > :nth-child(7) {
+        animation-delay: 720ms;
+      }
+      .draw > :nth-child(8) {
+        animation: glide 520ms var(--ease) 820ms both;
+      }
+
+      /* Layout breakpoints */
+      @media (max-width: 1080px) {
+        .agents {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0.5rem;
+        }
+        .facts {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 900px) {
+        .hero-grid,
+        .people,
+        .split,
+        .docs,
+        .cta {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .hero {
+          min-height: 0;
+        }
+        .canvas {
+          max-width: 34rem;
+        }
+        .people .then {
+          padding: 1.5rem 0 0;
+          border-left: 0;
+          border-top: 1px solid var(--border);
+        }
+        .bento > .card {
+          grid-column: 1 / -1;
+          grid-row: auto;
+        }
+        .docs .head {
+          position: static;
+        }
+        .cta-note {
+          margin-top: 0.75rem;
+        }
+      }
+      /* Small screens: each tool row becomes a record, its name above its description. */
+      @media (max-width: 640px) {
+        .table-wrap table,
+        .table-wrap tbody,
+        .table-wrap tr,
+        .table-wrap td {
+          display: block;
+          width: auto;
+        }
+        .table-wrap thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+        }
+        .table-wrap tr {
+          padding: 0.9rem 1rem;
+          border-bottom: 1px solid var(--border);
+        }
+        .table-wrap tr:last-child {
+          border-bottom: 0;
+        }
+        .table-wrap td {
+          padding: 0;
+          border: 0;
+        }
+        .table-wrap td:first-child {
+          margin-bottom: 0.3rem;
+        }
+        td:first-child code {
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+      }
+      @media (max-width: 560px) {
+        footer .links a {
+          margin: 0 1.25rem 0 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          animation-delay: 0ms !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header" id="top">
+      <div class="rail bar">
+        <a class="brand" href="#top"><svg class="mark" viewBox="4 4 24 24" aria-hidden="true" focusable="false"><rect x="6.5" y="5.5" width="16" height="20" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.4"/><line x1="10.5" y1="12" x2="18.5" y2="12" stroke-linecap="round" stroke="currentColor" stroke-width="2.2"/><circle cx="23" cy="23" r="3.6" fill="var(--background)" stroke="var(--ring)" stroke-width="2"/></svg>Atlassian MCP Server</a>
+        <!-- The two nav lists must match each other and the sections below (keep 3 to 5 links). -->
+        <nav class="desktop" aria-label="Sections">
+          <ul class="nav-links">
+            <li><a href="#install">Install</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#troubleshooting">Help</a></li>
+          </ul>
+        </nav>
+        <details class="menu">
+          <summary>Menu</summary>
+          <nav aria-label="Sections">
+            <ul class="nav-links">
+              <li><a href="#install">Install</a></li>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#tools">Tools</a></li>
+              <li><a href="#security">Security</a></li>
+              <li><a href="#troubleshooting">Help</a></li>
+            </ul>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="rail hero-grid">
+          <div class="hero-copy">
+            <p class="badge">Claude Desktop extension for macOS</p>
+            <h1 id="hero-title">Give Claude every Jira, Confluence and Rovo API.</h1>
+            <p class="lede">It runs locally on your Mac, signs in as you on each of your Atlassian sites, and can only do what your account can. One command installs it, and the same command updates it.</p>
+            <div class="actions">
+              <a class="btn btn-primary" href="#install">Install</a>
+              <a class="btn btn-outline" href="#install-agents">Guide for AI agents</a>
+            </div>
+            <p class="meta">
+              <span>Version 1.0.1</span><span>1,191 API operations</span><span>macOS</span>
+            </p>
+          </div>
+          <!--
+            Hero object: a work board with three columns of cards, one card selected as Claude moves it.
+            Drawn only with the f-* classes (see the skill's design-system.md). At most 8 children of .draw.
+          -->
+          <figure
+            class="canvas"
+            role="img"
+            aria-label="Illustration: a work board with three columns of cards, one card selected as it is moved"
+          >
+            <svg
+              viewBox="0 0 520 400"
+              width="520"
+              height="400"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <g class="draw">
+                <rect class="f-frame" x="70.5" y="54.5" width="379" height="290" rx="10" />
+                <g>
+                  <rect class="f-faint" x="70" y="34" width="62" height="8" rx="4" />
+                  <rect class="f-strong" x="92" y="74" width="96" height="12" rx="3" />
+                  <rect class="f-faint" x="352" y="76" width="34" height="8" rx="4" />
+                  <circle class="f-faint" cx="404" cy="80" r="6" />
+                  <circle class="f-faint" cx="420" cy="80" r="6" />
+                  <rect class="f-faint" x="92" y="104" width="44" height="7" rx="3.5" />
+                  <rect class="f-faint" x="208" y="104" width="58" height="7" rx="3.5" />
+                  <rect class="f-faint" x="324" y="104" width="36" height="7" rx="3.5" />
+                </g>
+                <g>
+                  <rect class="f-surface" x="92" y="122" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="102" y="134" width="62" height="7" rx="3.5" />
+                  <rect class="f-faint" x="102" y="148" width="78" height="7" rx="3.5" />
+                  <circle class="f-faint" cx="182" cy="166" r="5" />
+                  <rect class="f-surface" x="92" y="188" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="102" y="200" width="54" height="7" rx="3.5" />
+                  <rect class="f-faint" x="102" y="214" width="70" height="7" rx="3.5" />
+                  <circle class="f-faint" cx="182" cy="232" r="5" />
+                  <rect class="f-surface" x="92" y="254" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="102" y="266" width="66" height="7" rx="3.5" />
+                  <rect class="f-faint" x="102" y="280" width="58" height="7" rx="3.5" />
+                </g>
+                <g>
+                  <rect class="f-surface" x="208" y="122" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="218" y="134" width="70" height="7" rx="3.5" />
+                  <rect class="f-faint" x="218" y="148" width="60" height="7" rx="3.5" />
+                  <circle class="f-faint" cx="298" cy="166" r="5" />
+                </g>
+                <g>
+                  <rect class="f-surface" x="208" y="188" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="218" y="200" width="58" height="7" rx="3.5" />
+                  <rect class="f-faint" x="218" y="214" width="76" height="7" rx="3.5" />
+                  <circle class="f-faint" cx="298" cy="232" r="5" />
+                </g>
+                <g>
+                  <rect class="f-surface" x="324" y="122" width="104" height="56" rx="6" />
+                  <rect class="f-strong" x="334" y="134" width="48" height="7" rx="3.5" />
+                  <rect class="f-faint" x="334" y="148" width="72" height="7" rx="3.5" />
+                  <circle class="f-faint" cx="414" cy="166" r="5" />
+                </g>
+                <g>
+                  <rect class="f-select" x="207" y="187" width="106" height="58" />
+                  <rect class="f-handle" x="203.5" y="183.5" width="7" height="7" />
+                  <rect class="f-handle" x="309.5" y="183.5" width="7" height="7" />
+                  <rect class="f-handle" x="203.5" y="241.5" width="7" height="7" />
+                  <rect class="f-handle" x="309.5" y="241.5" width="7" height="7" />
+                </g>
+                <path
+                  class="f-cursor"
+                  d="M318 250 l0 22 l5.5 -5 l4 9 l4 -1.8 l-4 -8.8 l7.5 -0.4 z"
+                />
+              </g>
+            </svg>
+          </figure>
+        </div>
+      </section>
+
+      <section id="install" class="section rule" aria-labelledby="install-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Install</p>
+            <h2 id="install-title">One command, then a quick setup</h2>
+            <p class="lede">
+              The installer downloads the extension and checks its SHA-256 before anything changes.
+              For each site it asks for your Atlassian email and an API token in a secure prompt
+              (they go straight to your macOS Keychain), then opens Claude Desktop's install dialog,
+              where you click Install.
+            </p>
+          </div>
+          <div class="install-stack">
+            <article class="card people" id="install-people" aria-labelledby="people-title">
+              <div class="run">
+                <h3 id="people-title">For people</h3>
+                <p class="muted">Open Terminal and run:</p>
+                <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/install.sh | bash</code></pre></div>
+              </div>
+              <p class="muted">
+                You need macOS, Claude Desktop and an Atlassian API token for each site. You don't
+                need Node.js, npm or git. To set up other sites, add
+                <code>--site yoursite</code> after <code>bash -s --</code>. To update later, run the
+                same command again.
+              </p>
+                            <div class="then">
+                <p class="label">Then</p>
+                <ol><li>For each site, enter your Atlassian email and paste an API token into the secure prompt (it goes straight to your macOS Keychain), then click Install in the dialog Claude Desktop opens.</li><li>Ask Claude: &quot;Is Atlassian connected?&quot; It runs <code>atlassian_ensure_ready</code>, which checks each site and tells you the one next step.</li><li>For Rovo search and the Teamwork Graph, ask Claude to sign in to Rovo for each site. It opens the Atlassian sign-in page in your browser, once per site.</li></ol>
+              </div>
+                          </article>
+
+            <article class="card agents" id="install-agents" aria-labelledby="agents-title">
+              <div>
+                <h3 id="agents-title">For AI agents</h3>
+                <p class="muted">
+                  Use these steps if you are an AI agent installing this for a user.
+                </p>
+                <p class="muted">A plain-text version is in <a href="llms.txt">llms.txt</a>.</p>
+              </div>
+              <div class="agents-body">
+                <ol>
+                  <li>
+                    <strong>Check the machine.</strong> Continue only if
+                    <code>uname -s</code> prints <code>Darwin</code> and
+                    <code>/Applications/Claude.app</code> exists. Otherwise tell the user it needs
+                    macOS with Claude Desktop installed.
+                  </li>
+                  <li>
+                    <strong>Run the installer</strong> with this one command. It downloads the
+                    extension, checks its SHA-256 (nothing is installed before the check passes) and
+                    opens Claude Desktop's install dialog.
+                    <code>ATLASSIAN_INSTALL_TTY=/dev/null</code> means there is no terminal: the
+                    installer never quits or restarts an app, answers no to every question and never
+                    opens the token prompt (a dialog that waits for a person).
+                    <code>--no-wait</code> makes it exit 0 once the dialog is open. It exits
+                    non-zero, with the reason on stderr, if anything fails before then. Exit 0 means
+                    the installer finished its steps, not that Claude Desktop installed the
+                    extension.
+                  </li>
+                </ol>
+                <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command for agents">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/install.sh | ATLASSIAN_INSTALL_TTY=/dev/null bash -s -- --no-wait</code></pre></div>
+                <p>
+                  To choose the sites, add <code>--site &lt;site&gt;</code> (once per site, e.g.
+                  <code>--site acme.atlassian.net</code>) after <code>--no-wait</code>.
+                </p>
+                <ol start="3">
+                  <li>
+                    <strong>Hand over to the user.</strong> Ask them to click
+                    <strong>Install</strong> in Claude Desktop's dialog. Then, for each site without
+                    a token, call <code>atlassian_set_token</code> with the site: it opens a secure
+                    prompt on their Mac for their Atlassian email and API token. Never ask for the
+                    token in chat, and never write it to a file or a command line.
+                  </li>
+                  <li>
+                    <strong>Verify.</strong> Run the installer again with
+                    <code>--status</code> (after <code>bash -s --</code>); it never prints a token.
+                    Inside Claude Desktop, one call to <code>atlassian_ensure_ready</code> reports
+                    each site's token, Jira and Confluence access, Rovo sign-in and the single next
+                    step.
+                  </li>
+                  <li>
+                    <strong>Rovo (optional).</strong> For Rovo search and the Teamwork Graph, call
+                    <code>atlassian_rovo_sign_in</code> with the site. It opens the Atlassian
+                    sign-in page in the user's browser; they approve access once per site.
+                  </li>
+                </ol>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="why" class="section rule" aria-labelledby="why-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Why use it</p>
+            <h2 id="why-title">Nothing in Jira or Confluence is out of reach</h2>
+          </div>
+          <div class="bento">
+            <article class="card b-a">
+              <h3>Every operation Atlassian publishes, not a hand-picked few.</h3>
+              <p>
+                Claude can use all 1,191 REST operations across Jira, Jira Software, Jira Service
+                Management and Confluence, from boards and sprints to workflows, permission schemes,
+                customer requests and page restrictions. It finds the one it needs, then runs it.
+              </p>
+              <p class="stat">1,191 operations · 5 APIs</p>
+            </article>
+            <article class="card b-b">
+              <h3>Markdown in, Markdown out</h3>
+              <p>
+                Claude writes descriptions, comments and pages in Markdown. The server converts them
+                to Atlassian's document format, and converts what it reads back.
+              </p>
+            </article>
+            <article class="card b-c">
+              <h3>Rovo and the Teamwork Graph</h3>
+              <p>
+                Rovo search across Jira, Confluence and connected apps, and everything linked to an
+                issue, page or person, after a browser sign-in for each site.
+              </p>
+            </article>
+            <article class="card b-d">
+              <h3>Several sites, never the wrong one</h3>
+              <p>
+                Each site keeps its own email and token. With more than one set up, Claude has to
+                name the site, so a change never lands on the wrong one by default.
+              </p>
+            </article>
+            <article class="card b-e">
+              <h3>Your permissions, your Keychain</h3>
+              <p>
+                Every call runs as you, so Claude can only do what your account can. Tokens stay in
+                the macOS Keychain, and anything that changes or deletes data is labelled so Claude
+                Desktop asks first.
+              </p>
+              <ul class="facts">
+                <li><code>Keychain</code>Where each site's token is kept</li>
+                <li><code>read · write · destructive</code>How every operation is labelled</li>
+                <li><code>SHA-256</code>Checked before anything is installed</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section rule" aria-labelledby="features-title">
+        <div class="rail split">
+          <div class="features-copy">
+            <p class="kicker">Features</p>
+            <h2 id="features-title">What you can do</h2>
+            <div class="features-body"><p><strong>Every Jira and Confluence REST API.</strong> All 1,191 operations Atlassian publishes: Jira (629), Jira Software boards, sprints, epics and backlogs (105), Jira Service Management (75), and Confluence v2 (252) and v1 (130). Claude finds the operation it needs with <code>atlassian_discover</code> and runs it, so nothing is out of reach, from workflows and permission schemes to page restrictions and customer requests.</p>
+<p><strong>Everyday work in Markdown.</strong> Search with JQL or CQL, read, create, edit, move and comment on issues, and read, create, update and comment on pages and blog posts. Claude writes Markdown; the server converts it to Atlassian&#39;s format and back.</p>
+<p><strong>Atlassian GraphQL.</strong> Queries and mutations against the platform graph behind Jira, Confluence, Goals, Projects and Teams.</p>
+<p><strong>Rovo.</strong> Rovo search across Jira, Confluence and the apps your organisation connected, and the Teamwork Graph: everything linked to an issue, page, person or goal in one call. Atlassian offers these only through its hosted Rovo MCP server, so this server signs in to it for you.</p>
+<p><strong>Several sites at once.</strong> Each site has its own email and token, so sites can use different accounts. Choose them with the installer&#39;s <code>--site</code>, or add one any time with <code>atlassian_set_token</code>.</p></div>
+          </div>
+          <div><div class="codebox"><div class="codebar"><span>Example</span><button class="copy" type="button" aria-label="Copy Example prompts">Copy</button></div><pre tabindex="0"><code>&quot;Is Atlassian connected?&quot;
+&quot;Show my open issues in ENG on acme, newest first&quot;
+&quot;Move ENG-1423 to In Review and comment that the PR is up&quot;
+&quot;Summarise the Q3 planning page in the DATA space on our other site&quot;
+&quot;Create a page under &#39;Runbooks&#39; with these steps&quot;
+&quot;List the sprints on the Platform board and what&#39;s left in the active one&quot;
+&quot;What&#39;s linked to ENG-1423: PRs, builds, pages, people?&quot;
+&quot;Find what we decided about data retention&quot; (Rovo search)</code></pre></div></div>
+        </div>
+      </section>
+
+      <section id="tokens" class="section rule" aria-labelledby="tokens-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Sign-in</p>
+            <h2 id="tokens-title">API tokens and Rovo</h2>
+            <p class="lede">What each site needs, and how Rovo signs in.</p>
+          </div>
+          <div class="docs-body"><p>Create a token at <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer">https://id.atlassian.com/manage-profile/security/api-tokens</a> and give it to the installer or <code>atlassian_set_token</code>, never to Claude in chat. A classic token can do whatever your account can. A scoped token can do only what its scopes allow; the server notices and sends its requests through <code>api.atlassian.com</code>, which scoped tokens need. Each site keeps its own email and token, so a site where you use a different Atlassian account just gets a different token. Some organisations block API tokens for managed accounts; if Atlassian rejects a token you know is right, ask your Atlassian admin.</p>
+<p>Rovo doesn&#39;t use the API token: Atlassian only allows a browser sign-in (OAuth) for its Rovo MCP server. Atlassian&#39;s consent page grants one site at a time, so sign in once for each site you want Rovo on.</p></div>
+        </div>
+      </section>
+
+      <section id="tools" class="section dense rule" aria-labelledby="tools-title">
+        <div class="rail">
+          <div class="head">
+            <p class="kicker">Reference</p>
+            <h2 id="tools-title">Tools</h2>
+            <p class="lede">
+              In five groups: setup, Jira, Confluence, every REST API and GraphQL, and Rovo.
+            </p>
+          </div>
+          <div class="tool-group">
+            <h3>Setup <span class="count">2</span></h3>
+            <div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>atlassian_ensure_ready</code></td><td>Report, for each Atlassian site, whether an API token is saved and works for Jira and Confluence, whether Rovo is signed in, and the single next step.</td></tr><tr><td><code>atlassian_set_token</code></td><td>Open a native macOS prompt where the user enters their Atlassian account email and pastes an API token for one site.</td></tr></tbody></table></div>
+          </div>
+          <div class="tool-group">
+            <h3>Jira <span class="count">7</span></h3>
+            <div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>atlassian_jira_search</code></td><td>Search Jira issues with JQL, e.g. <code>project = ENG AND status != Done ORDER BY updated DESC</code> or <code>assignee = currentUser() AND resolution = Unresolved</code>.</td></tr><tr><td><code>atlassian_jira_get_issue</code></td><td>Read one Jira issue in full: summary, status, people, dates, every non-empty field (custom fields by name), description and latest comments as Markdown, subtasks, links and attachments.</td></tr><tr><td><code>atlassian_jira_create_issue</code></td><td>Create a Jira issue (task, bug, story, epic, subtask…).</td></tr><tr><td><code>atlassian_jira_edit_issue</code></td><td>Change fields on a Jira issue: summary, description (Markdown), assignee, priority, labels (replace, add or remove), components, parent, due date, or any field in Jira&#39;s REST form.</td></tr><tr><td><code>atlassian_jira_transition_issue</code></td><td>Change a Jira issue&#39;s status by applying a workflow transition, by transition name, target status name or id.</td></tr><tr><td><code>atlassian_jira_add_comment</code></td><td>Add a comment (Markdown) to a Jira issue, visible to everyone who can see it unless visibility restricts it.</td></tr><tr><td><code>atlassian_jira_list_projects</code></td><td>List the Jira projects the account can see, optionally filtered by name or key, with their keys and leads.</td></tr></tbody></table></div>
+          </div>
+          <div class="tool-group">
+            <h3>Confluence <span class="count">6</span></h3>
+            <div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>atlassian_confluence_search</code></td><td>Search Confluence with CQL, e.g. <code>type = page AND space = ENG AND text ~ &quot;release plan&quot; ORDER BY lastmodified DESC</code>, or pass text for a simple full-text search.</td></tr><tr><td><code>atlassian_confluence_get_page</code></td><td>Read a Confluence page or blog post: title, space, version, dates, link and the body as Markdown. format &#39;storage&#39; returns Confluence&#39;s XHTML storage format and &#39;adf&#39; the raw document, e.g. to see macros exactly.</td></tr><tr><td><code>atlassian_confluence_create_page</code></td><td>Create a Confluence page (or blog post) from Markdown in a space, optionally under a parent page.</td></tr><tr><td><code>atlassian_confluence_update_page</code></td><td>Update a Confluence page or blog post: new title and/or body from Markdown, replacing the body or appending to it.</td></tr><tr><td><code>atlassian_confluence_add_comment</code></td><td>Add a footer comment (Markdown) to a Confluence page or blog post, or reply to an existing comment.</td></tr><tr><td><code>atlassian_confluence_list_spaces</code></td><td>List the Confluence spaces the account can see, with keys, ids, names and types.</td></tr></tbody></table></div>
+          </div>
+          <div class="tool-group">
+            <h3>
+              Every REST API, and GraphQL
+              <span class="count">8</span>
+            </h3>
+            <div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>atlassian_discover</code></td><td>Search the catalog of Jira and Confluence REST operations: 1,191 operations from the Jira platform, Jira Software (boards, sprints, epics, backlog), Jira Service Management and Confluence (v2 and v1) REST APIs.</td></tr><tr><td><code>atlassian_describe_operation</code></td><td>Everything about one catalog operation: route, tier and the tool that runs it, parameters, the request body schema with $refs expanded to depth levels, OAuth scopes (for scoped API tokens), and deprecation or app-only notes.</td></tr><tr><td><code>atlassian_execute_read</code></td><td>Run a read-only Atlassian REST operation from the catalog (tier read in atlassian_discover): every GET, plus POST searches and checks such as JQL search (jira.searchAndReconsileIssuesUsingJqlPost) and bulk fetches.</td></tr><tr><td><code>atlassian_execute_write</code></td><td>Run an Atlassian REST operation from the catalog that creates or changes something (tier write in atlassian_discover), such as creating an issue, transitioning it, adding a comment or updating a page.</td></tr><tr><td><code>atlassian_execute_destructive</code></td><td>Run an Atlassian REST operation from the catalog that deletes, archives, trashes, redacts or removes something (tier destructive in atlassian_discover).</td></tr><tr><td><code>atlassian_request</code></td><td>Send a request to any Jira or Confluence REST endpoint, for one the catalog doesn&#39;t have.</td></tr><tr><td><code>atlassian_graphql_query</code></td><td>Run a read-only GraphQL query against Atlassian&#39;s GraphQL API on the site (https://&lt;site&gt;/gateway/api/graphql).</td></tr><tr><td><code>atlassian_graphql_mutation</code></td><td>Run a GraphQL mutation against Atlassian&#39;s GraphQL API on the site.</td></tr></tbody></table></div>
+          </div>
+          <div class="tool-group">
+            <h3>Rovo <span class="count">6</span></h3>
+            <div class="table-wrap"><table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody><tr><td><code>atlassian_rovo_sign_in</code></td><td>Open the Atlassian sign-in page in the user&#39;s browser so this server can use Rovo search and the Teamwork Graph for a site (Atlassian only offers these through its hosted Rovo MCP server, which needs a browser sign-in; API tokens aren&#39;t used for it).</td></tr><tr><td><code>atlassian_rovo_sign_out</code></td><td>Forget the Rovo sign-in for a site: removes its tokens from the Keychain.</td></tr><tr><td><code>atlassian_rovo_search</code></td><td>Search across Jira, Confluence and connected third-party apps (Google Drive, Slack, GitHub and others the organisation connected) with Rovo Search, Atlassian&#39;s semantic enterprise search.</td></tr><tr><td><code>atlassian_teamwork_graph_context</code></td><td>Get everything connected to one item in Atlassian&#39;s Teamwork Graph in a single call: linked work items, pages, people, teams, goals, projects, pull requests, builds, deployments, designs, Loom videos and third-party items.</td></tr><tr><td><code>atlassian_teamwork_graph_object</code></td><td>Fetch the full available data for up to 25 items (Atlassian or third-party) by ARI or URL, e.g. ARIs returned by atlassian_teamwork_graph_context or atlassian_rovo_search.</td></tr><tr><td><code>atlassian_teamwork_graph_link</code></td><td>Add a relationship in the Teamwork Graph: link two Jira work items, mark one as blocking another, add a remote link to a work item, or connect a work item to an Atlassian project or goal.</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="security" class="section rule" aria-labelledby="security-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Security</p>
+            <h2 id="security-title">Security and privacy</h2>
+            <p class="lede">Where your tokens are kept, and where requests go.</p>
+          </div>
+          <div class="docs-body rows"><ul><li>API tokens live only in the macOS Keychain, one item per site, saved from a hidden-input prompt. They never go through chat, command-line arguments or files, and no tool returns them.</li><li>Requests go only to your Atlassian sites, to <code>api.atlassian.com</code> (for scoped tokens) and to <code>mcp.atlassian.com</code> (for Rovo). The raw request tool accepts only paths on the site itself.</li><li>Every operation is labelled read, write or destructive from what it does, not just its HTTP method, so Claude Desktop asks before anything that changes or deletes data.</li><li>The Rovo sign-in is OAuth 2.1 with PKCE in your own browser. A listener on <code>localhost:47813</code> runs only while a sign-in is waiting, and the tokens are kept in the Keychain.</li><li>Atlassian records Rovo tool calls in your organisation&#39;s audit log, and they use Rovo credits.</li><li>The installer&#39;s SHA-256 check catches a corrupted or partial download, not a compromised site: the checksum and the installer are served from the same site. Read <code>install.sh</code> before running it if that matters to you.</li></ul></div>
+        </div>
+      </section>
+
+      <section id="troubleshooting" class="section rule" aria-labelledby="troubleshooting-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Help</p>
+            <h2 id="troubleshooting-title">Troubleshooting</h2>
+            <p class="lede">The messages you might see, and what to do about each.</p>
+          </div>
+          <div class="docs-body rows"><p>See INSTALL.md for installer errors and tokens.</p>
+<ul><li><strong>&quot;No API token is saved&quot;</strong>: ask Claude to run <code>atlassian_set_token</code> for that site, or run the installer again in a terminal.</li><li><strong>&quot;More than one Atlassian site is set up&quot;</strong>: say which site, e.g. &quot;on acme&quot;.</li><li><strong>Error 401</strong>: the token expired or was revoked. Save a new one with <code>atlassian_set_token</code>.</li><li><strong>Error 403</strong>: your account (or a scoped token) isn&#39;t allowed to do that. Atlassian answers 404 for things you can&#39;t see.</li><li><strong>&quot;Rovo isn&#39;t signed in&quot;</strong>: ask Claude to sign in to Rovo for that site and approve access in the browser.</li></ul></div>
+        </div>
+      </section>
+
+            <section id="notes" class="section rule" aria-labelledby="notes-title">
+        <div class="rail docs">
+          <div class="head">
+            <p class="kicker">Notes</p>
+            <h2 id="notes-title">Good to know</h2>
+          </div>
+          <div class="docs-body rows"><ul><li>Every tool takes a <code>site</code>. With one site set up it&#39;s optional; with several, Claude has to name one, so nothing is written to the wrong site by default.</li><li>Operations that only Atlassian Connect or Forge apps can call (Jira DevOps builds and deployments, for example) are in the catalog but marked: a personal token gets 401 or 403 for them.</li><li>The catalog is rebuilt from Atlassian&#39;s published OpenAPI specs (<code>npm run specs:update</code>), so new endpoints arrive with a release. Until then, <code>atlassian_request</code> reaches anything on the site.</li></ul></div>
+        </div>
+      </section>
+      
+      <section class="section" aria-labelledby="cta-title">
+        <div class="rail">
+          <div class="card cta">
+            <div>
+              <h2 id="cta-title">One command to install, the same one to update.</h2>
+              <p class="muted">
+                No Node.js and no config files: the installer and Claude do the setup.
+              </p>
+            </div>
+            <p class="muted cta-note">
+              Installing for someone as an AI agent? Follow the
+              <a href="#install-agents">agent guide</a>.
+            </p>
+            <div class="codebox"><div class="codebar"><span>Terminal</span><button class="copy" type="button" aria-label="Copy install command">Copy</button></div><pre tabindex="0"><code>curl -fsSL https://wpp-jamie-mills.github.io/atlassian-mcp-server-site/install.sh | bash</code></pre></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="rule">
+      <div class="rail">
+        <p>Atlassian MCP Server · generated from the project README for version 1.0.1.</p>
+        <p class="links">
+          <a
+            href="summary.md"
+            >summary.md</a
+          ><a href="llms.txt">llms.txt</a><a href="install.sh">install.sh</a>
+        </p>
+      </div>
+    </footer>
+
+    <div class="sr-only" role="status" id="copy-status"></div>
+    <script>
+      (function () {
+        var status = document.getElementById("copy-status");
+        function fallbackCopy(text) {
+          var area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          var previous = document.activeElement;
+          document.body.appendChild(area);
+          area.select();
+          var ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch (e) {}
+          document.body.removeChild(area);
+          if (previous && previous.focus) previous.focus();
+          return ok;
+        }
+        function copyText(text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(
+              function () {
+                return true;
+              },
+              function () {
+                return fallbackCopy(text);
+              },
+            );
+          }
+          return Promise.resolve(fallbackCopy(text));
+        }
+        Array.prototype.forEach.call(document.querySelectorAll(".codebox .copy"), function (btn) {
+          var label = btn.textContent;
+          var aria = btn.getAttribute("aria-label");
+          var timer;
+          btn.addEventListener("click", function () {
+            var pre = btn.closest(".codebox").querySelector("pre");
+            copyText(pre.textContent.replace(/\n$/, "")).then(function (ok) {
+              clearTimeout(timer);
+              if (!ok) {
+                // Leave the command selected so the user can copy it with the keyboard.
+                var range = document.createRange();
+                range.selectNodeContents(pre);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+              }
+              var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+              btn.textContent = ok ? "Copied" : mac ? "Press ⌘C" : "Press Ctrl+C";
+              btn.classList.toggle("done", ok);
+              btn.setAttribute("aria-label", ok ? "Copied" : "Copy failed");
+              status.textContent = ok ? "Copied to clipboard" : "Copy failed";
+              timer = setTimeout(function () {
+                btn.textContent = label;
+                btn.classList.remove("done");
+                btn.setAttribute("aria-label", aria);
+                status.textContent = "";
+              }, 1500);
+            });
+          });
+        });
+
+        // The small-screen menu closes on Escape (returning focus to its button), on a link and on an outside click.
+        var menu = document.querySelector(".menu");
+        if (menu) {
+          var summary = menu.querySelector("summary");
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && menu.open) {
+              menu.open = false;
+              summary.focus();
+            }
+          });
+          menu.addEventListener("click", function (e) {
+            if (e.target.closest("a")) menu.open = false;
+          });
+          document.addEventListener("click", function (e) {
+            if (menu.open && !menu.contains(e.target)) menu.open = false;
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
